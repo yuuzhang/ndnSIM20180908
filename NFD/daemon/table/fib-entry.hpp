@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-/*
- * Copyright (c) 2014-2018,  Regents of the University of California,
+/**
+ * Copyright (c) 2014-2016,  Regents of the University of California,
  *                           Arizona Board of Regents,
  *                           Colorado State University,
  *                           University Pierre & Marie Curie, Sorbonne University,
@@ -86,6 +86,12 @@ public:
   void
   addNextHop(Face& face, uint64_t cost);
 
+  /** \ZhangYu: adds a NextHop record
+   *
+   *  2018-1-30, add the face occupied probability for randomized rounding
+   */
+  void
+  addNextHop(Face& face, uint64_t cost, uint64_t probability);
   /** \brief removes a NextHop record
    *
    *  If no NextHop record for face exists, do nothing.

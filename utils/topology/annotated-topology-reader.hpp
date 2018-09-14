@@ -62,6 +62,13 @@ public:
   virtual NodeContainer
   GetNodes() const;
 
+  //ZhangYu 2017-9-19 因为直接给modulegen_gcc添加Names模块不成功，因此在此加上按名字找节点
+  // 2018-1-28又加上了得到节点名字
+  virtual Ptr<Node>
+  FindNodeFromName(const std::string name);
+  virtual std::string
+  GetNodeName(Ptr<Node> node);
+
   /**
    * \brief Get links read by the reader
    */

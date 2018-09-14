@@ -60,6 +60,12 @@ FibManager::addNextHop(const Name& topPrefix, const Interest& interest,
   const Name& prefix = parameters.getName();
   FaceId faceId = parameters.getFaceId();
   uint64_t cost = parameters.getCost();
+  // ZhangYu 2018-2-1
+  uint64_t probability=0;
+  if(parameters.hasProbability()){
+	  probability=parameters.getProbability();
+	  //std::cout << "ZhangYu 2018-2-1 FibManager::addNexHop probability: " << probability << std::endl;
+  }
 
   if (prefix.size() > Fib::getMaxDepth()) {
     NFD_LOG_DEBUG("fib/add-nexthop(" << prefix << ',' << faceId << ',' << cost <<
@@ -76,7 +82,23 @@ FibManager::addNextHop(const Name& topPrefix, const Interest& interest,
   }
 
   fib::Entry* entry = m_fib.insert(prefix).first;
-  entry->addNextHop(*face, cost);
+  //ZhangYu 2018-4-3 因为源文件版本差别较大，这里只能参考20170130的版本
+  if(parameters.hasProbability()){
+	  entry->addNextHop(*face, cost, probability);
+	  NFD_LOG_DEBUG("add-nexthop result: OK"
+					  << " prefix:" << prefix
+					  << " faceid: " << faceId
+					  << " cost: " << cost
+					  << " probability: " << probability);
+  }
+  else {
+	  entry->addNextHop(*face, cost);
+	  NFD_LOG_DEBUG("add-nexthop result: OK"
+					  << " prefix:" << prefix
+					  << " faceid: " << faceId
+					  << " cost: " << cost);
+
+  }
 
   NFD_LOG_TRACE("fib/add-nexthop(" << prefix << ',' << faceId << ',' << cost << "): OK");
   return done(ControlResponse(200, "Success").setBody(parameters.wireEncode()));

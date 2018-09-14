@@ -12,7 +12,7 @@ Node4	NA	412	704	4
 link
 
 #srcNode	dstNode	bandwidth	metric	delay	queue	
-Node0	Node2	100.0kbps	30	20ms	
-Node1	Node2	100.0kbps	30	20ms	
-Node2	Node3	100.0kbps	30	20ms	
-Node2	Node4	100.0kbps	30	20ms	
+Node0	Node2	1000.0kbps	30	20ms	
+Node1	Node2	1000.0kbps	30	20ms	
+Node2	Node3	1000.0kbps	30	20ms	
+Node2	Node4	1000.0kbps	30	20ms	

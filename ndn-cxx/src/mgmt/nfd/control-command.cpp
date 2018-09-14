@@ -201,11 +201,16 @@ FibAddNextHopCommand::FibAddNextHopCommand()
   m_requestValidator
     .required(CONTROL_PARAMETER_NAME)
     .optional(CONTROL_PARAMETER_FACE_ID)
-    .optional(CONTROL_PARAMETER_COST);
+    .optional(CONTROL_PARAMETER_COST)
+	// ZhangYu 2018-2-1，是必要的还是可选的
+  	.optional(CONTROL_PARAMETER_PROBABILITY);
   m_responseValidator
     .required(CONTROL_PARAMETER_NAME)
     .required(CONTROL_PARAMETER_FACE_ID)
-    .required(CONTROL_PARAMETER_COST);
+    .required(CONTROL_PARAMETER_COST)
+	// ZhangYu 2018-2-1，是必要的还是可选的，当写成.required后，不用 probability会导致出错
+    .optional(CONTROL_PARAMETER_PROBABILITY);
+
 }
 
 void

@@ -58,6 +58,25 @@
 
 #include <math.h>
 
+//ZhangYu 2016-12-2
+#include "ns3/application.h"
+#include "ns3/point-to-point-net-device.h"
+#include "ns3/point-to-point-helper.h"
+#include "ns3/channel.h"
+
+#include <unordered_map>
+
+//2016-11-22 为了StringValue
+#include "ns3/string.h"
+#include "boost-graph-ndn-global-routing-helper.hpp"
+//2017-8-19 try python caculate routes and add to FIB manually
+//#include "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7/Python.h"
+// 2018-2-2 使用boost的随机数库
+
+#include <math.h>
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random.hpp>
+
 NS_LOG_COMPONENT_DEFINE("ndn.GlobalRoutingHelper");
 
 namespace ns3 {
@@ -384,6 +403,367 @@ GlobalRoutingHelper::CalculateAllPossibleRoutes()
       l3->getForwarder()->getFaceTable().get(i.first)->setMetric(i.second);
     }
   }
+}
+/* ZhangYu 2016-12-5，modify for the new version of ndnSIM.  global no common link multi-path routing pair first,
+ * not like the previous noCommLinkMultiPath routing in which all the multipaths for a pair of source and destination are get before calculate the next pair.
+ * In pair first, we would calculate the shortest path for all of the pair first, then the second shortest path for all the pair, until all of the paths are found.
+ */
+void
+GlobalRoutingHelper::CalculateNoCommLinkMultiPathRoutesPairFirst()
+{
+	CalculateNoCommLinkMultiPathRoutesPairFirst(false);
+}
+/* ZhangYu 2016-12-1 为了和Matlab中的算法保持一致，搜索出一条路径后0->1->4后，添加路由0->1->4，设置其为Max-1
+ * 将当setReverseRoute是True时，还要设置4->1->0为Max-1，但是不添加路由4->1->0
+ */
+void
+GlobalRoutingHelper::CalculateNoCommLinkMultiPathRoutesPairFirst(bool setReverseRoute)
+{
+	BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<boost::NdnGlobalRouterGraph>));
+	BOOST_CONCEPT_ASSERT((boost::IncidenceGraphConcept<boost::NdnGlobalRouterGraph>));
+	boost::NdnGlobalRouterGraph graph;
+	BackupRestoreOriginalMetrics("Backup");
+
+	bool foundPath=true;
+	//2015-2-25，为了能够只计算相应的 Producer 节点到源节点的路径，需要匹配 curPrefix。原来的 Multipath 计算了所有的 procucer 到当前的 consumer
+	std::string curPrefix;
+	//ZhangYu 2015-1-7 设置循环一轮节点，如果能找到一条路径，那么foundPath=true,否则维持false，导致不再进行下一轮循环。
+	while(foundPath)
+	{
+		foundPath=false;
+		for (NodeList::Iterator node = NodeList::Begin (); node != NodeList::End (); node++)
+		{
+			Ptr<GlobalRouter> source = (*node)->GetObject<GlobalRouter> ();
+			if (source == 0)	{
+				NS_LOG_DEBUG ("Node " << (*node)->GetId () << " does not export GlobalRouter interface");
+				continue;
+			}
+
+			//开始计算最短路
+			for(uint32_t appId=0; appId<(*node)->GetNApplications();appId++)
+			{
+				std::string appTypeStr= (*node)->GetApplication(appId)->GetInstanceTypeId().GetName();
+				if(std::string::npos!= appTypeStr.find("Consumer"))	//only calculate the Consumer/source node 2015-1-8
+				{
+					StringValue tmp;
+					(*node)->GetApplication(appId)->GetAttribute("Prefix",tmp);
+					curPrefix=tmp.Get();
+					//NS_LOG_DEBUG("ZhangYu 2015-2-25   consumer1->GetApplication(0)->GetAttribute(Prefix,: " << curPrefix << std::endl);
+					NS_LOG_DEBUG ("===== Reachability from source Node: " << source->GetObject<Node> ()->GetId () << " ("
+							<< Names::FindName (source->GetObject<Node> ()) << ")  Prefix: " << curPrefix);
+					//2015-2-25，添加的路由计算时只计算和 consumeer 拥有同样的 Prefix 的 Producer 的路由，这样保证添加的Fib和设置为无穷大的只是一对源目的节点对之间的多路径。
+					//虽然代码支持，这里没有仔细考虑多个 Application 时是否能正确运行，目前的一个节点只装在一个 consumer 或者一个 procuer，后面的也一样
+
+					boost::DistancesMap    distances;
+					boost::PredecessorsMap predecessors;
+					dijkstra_shortest_paths (graph, source,
+											 predecessor_map (boost::ref(predecessors))
+											 .
+											 distance_map (boost::ref(distances))
+											 .
+											 distance_inf (boost::WeightInf)
+											 .
+											 distance_zero (boost::WeightZero)
+											 .
+											 distance_compare (boost::WeightCompare ())
+											 .
+											 distance_combine (boost::ZYWeightCombine ())
+											 );
+					for (boost::DistancesMap::iterator dist = distances.begin (); dist != distances.end (); dist++)
+						//for (const auto& dist : distances)
+					{
+						if (dist->first == source)
+							continue;
+						else
+						{
+							if (std::get<0>(dist->second) == 0)
+							{
+								NS_LOG_DEBUG("  Node " << dist->first->GetObject<Node> ()->GetId () << " is unreachable" << std::endl);
+							}
+							else
+							{
+								NS_LOG_DEBUG("  ---DistancesMapLoop--, Node:" << dist->first->GetObject<Node>()->GetId()<< "   face:" << *std::get<0>(dist->second)<<"  with distance:" << std::get<1>(dist->second));
+
+								//下面为每个producer的节点的每个应用添加路由fibs，一个节点有多个Apps时循环（这里循环执行有点冗余，但是为了代码清爽，就这样了）
+								//NS_LOG_DEBUG("ZhangYu 2014-2-7 dist->first->GetLocalPrefixes.size(): " <<dist->first->GetLocalPrefixes().size());
+
+								for (const auto& prefix : dist->first->GetLocalPrefixes ())
+								{
+									//2015-2-26 只有和 consumer 具有相同 Prefix 的producer 才添加FIB，修改其路径上的边的代价为无穷
+									if (curPrefix==prefix->toUri())
+									{
+										Ptr<GlobalRouter> curNode =dist->first ;
+										Ptr<GlobalRouter> preNode;
+										//NS_LOG_DEBUG("ZhangYu 2014-1-7 producer Node: " << curNode->GetObject<Node>()->GetId() );
+
+										while (curNode!=source)
+										{
+											preNode=predecessors[curNode];
+											NS_LOG_DEBUG("    ---current backtracking Node: " << curNode->GetObject<Node>()->GetId() );
+											//ZhangYu 2016-12 ZYWeightCombine的返回值是，假设路径为0-1-4，对于节点4，返回的face是1-4的，返回的距离是
+											NS_LOG_DEBUG("    ---prefix: " << *prefix << "  preNode: " << preNode->GetObject<Node>()->GetId()
+														 << "  reachable via face: " << *std::get<0>(distances[curNode])
+														 << " LocalUri： " << std::get<0>(distances[curNode])->getLocalUri()
+														 << " RemoteUri" << std::get<0>(distances[curNode])->getRemoteUri()
+														 << "  with distance: " << std::get<1>(distances[curNode])-std::get<1>(distances[preNode])
+														 << "  with delay " << std::get<2>(distances[curNode]) );
+											//ZhangYu 2017-9-21 判断条件修改为 max()-1，原来是max()，导致死循环，因为总认为max-1符合条件
+											if(std::get<1>(distances[curNode])-std::get<1>(distances[preNode]) < std::numeric_limits<uint16_t>::max()-1)
+											{
+												FibHelper::AddRoute(preNode->GetObject<Node>(), *prefix, std::get<0>(distances[curNode]),
+																	std::get<1>(distances[curNode])-std::get<1>(distances[preNode]));
+												//distances是Map类型，dist->first得到的是key，dist->second得到的是Value，而直接使用distances[curNode]得到的也是Value
+												foundPath=true;
+												//前面执行完了回溯路径，添加fib，后面的是把这条路径上的Link设置为不可用
+												std::get<0>(distances[curNode])->setMetric(std::numeric_limits<uint16_t>::max() - 1);
+											}
+											else
+												NS_LOG_DEBUG("ZhangYu 2014-3-22 didnot add fib, because greater than uint16::max");
+											if(setReverseRoute)	{
+												//原始代码中，当 curNode 是4时，设置的是节点1到节点4的Face，反向链路应该是节点4到节点1的 Face。
+												Ptr<L3Protocol> l3 = curNode->GetObject<L3Protocol>();
+												//ZhangYu 2017-1-30下句中的类型Face&是试出来的
+												for (Face& face : l3->getForwarder()->getFaceTable()){
+													auto transport = dynamic_cast<NetDeviceTransport*>(face.getTransport());
+													if(face.getLocalUri()==std::get<0>(distances[curNode])->getRemoteUri())	{
+														face.setMetric(std::numeric_limits<uint16_t>::max() - 1);
+														//value std::numeric_limits<uint16_t>::max () MUST NOT be used (reserved)
+														NS_LOG_DEBUG("ZhangYu 2016-12-5 Reverse Edge set to Max "  << face.getLocalUri());
+													}
+												 }
+											}
+											curNode=preNode;
+										}	//while
+
+									} //if (curPrefix
+								}
+							}
+						} //else
+						//break;
+					}	//for (boost::DistanceMap..
+					//break;
+				}
+			}
+		}
+	}
+	BackupRestoreOriginalMetrics("Restore");
+}
+
+/* ZhangYu 2018-2-28 为了比较k-shortest path，从2014年版本中找出CalculateNoCommLinkMultiPathRoutes
+ * 2014年的ndnSIM中添加Fib的方式和2016之后的不一样，我的代码借鉴CalculateAllPossibleRoutes的代码，所以在2014的基础上进行了相应的修改
+ */
+
+void
+GlobalRoutingHelper::CalculateNoCommLinkMultiPathRoutes(std::int32_t multipathNumber)
+{
+	multipathNumber=3;    //共计算几条多路径
+
+	BOOST_CONCEPT_ASSERT(( boost::VertexListGraphConcept< boost::NdnGlobalRouterGraph > ));
+	BOOST_CONCEPT_ASSERT((boost::IncidenceGraphConcept<boost::NdnGlobalRouterGraph>));
+	boost::NdnGlobalRouterGraph graph;
+	// tobe delete typedef boost::graph_traits<boost::NdnGlobalRouterGraph>::vertex_descriptor vertex_descriptor;
+
+	BackupRestoreOriginalMetrics("Backup");
+	/* 计算出来后一次为所有Path上的节点都添加Fib，这样可以省去为无关的节点也计算最短路，计算一次才为当前计算的节点添加Fib。
+	 * 为了选择consumer节点，一种方式是在global-routing中(*node)->GetApplication(appId)->GetInstanceTypeId()判断节点的类型，
+	 * 根据字符串开头是consumer的，不考虑producer
+	 */
+	std::string curPrefix;
+	for (NodeList::Iterator node = NodeList::Begin (); node != NodeList::End (); node++)
+	{
+	   Ptr<GlobalRouter> source = (*node)->GetObject<GlobalRouter> ();
+		if (source == 0)
+		{
+			NS_LOG_DEBUG ("Node " << (*node)->GetId () << " does not export GlobalRouter interface");
+			continue;
+		}
+		//开始计算最短路，考虑了一个节点中有多个app
+		for(uint32_t appId=0; appId<(*node)->GetNApplications();appId++)
+		{
+			std::string appTypeStr= (*node)->GetApplication(appId)->GetInstanceTypeId().GetName();
+			if(std::string::npos!= appTypeStr.find("Consumer"))
+			{
+				StringValue tmp;
+				(*node)->GetApplication(appId)->GetAttribute("Prefix",tmp);
+				curPrefix=tmp.Get();
+
+				//NS_LOG_DEBUG("ZhangYu 2014-1-1 is consumer node Id: " << (*node)->GetId() <<" " << (appTypeStr.find("Consumer")) <<"'  "<< appTypeStr);
+				NS_LOG_DEBUG ("===== Reachability from source Node: " << source->GetObject<Node> ()->GetId () << " (" << Names::FindName (source->GetObject<Node> ()) << ")");
+				//2015-2-25，添加的路由计算时只计算和 consumeer 拥有同样的 Prefix 的 Producer 的路由，这样保证添加的Fib和设置为无穷大的只是一对源目的节点对之间的多路径。
+				//虽然代码支持，这里没有仔细考虑多个 Application 时是否能正确运行，目前的一个节点只装在一个 consumer 或者一个 procuer，后面的也一样
+
+
+				//计算包含这个consumer的节点到其他节点的最短路
+				for(uint32_t pathIndex=0; pathIndex<multipathNumber;pathIndex++)
+				{
+					boost::DistancesMap    distances;
+					boost::PredecessorsMap predecessors;
+					dijkstra_shortest_paths (graph, source,
+											 predecessor_map (boost::ref(predecessors))
+											 .
+											 distance_map (boost::ref(distances))
+											 .
+											 distance_inf (boost::WeightInf)
+											 .
+											 distance_zero (boost::WeightZero)
+											 .
+											 distance_compare (boost::WeightCompare ())
+											 .
+											 distance_combine (boost::ZYWeightCombine ())
+											 );
+					NS_LOG_DEBUG("ZhangYu 2014-2-7 pathIndex: " << pathIndex << std::endl);
+					for(boost::PredecessorsMap::iterator i=predecessors.begin();i!=predecessors.end();i++)		{
+						//NS_LOG_DEBUG("ZhangYu 2013-5-21 predecessors node: " << i->first->GetObject<Node>()->GetId()  <<"  ParentNode: " <<i->second->GetObject<Node>()->GetId());
+					}
+
+					for (boost::DistancesMap::iterator dist = distances.begin (); dist != distances.end (); dist++)	{
+						if (dist->first == source)
+							continue;
+						else {
+							if (std::get<0> (dist->second) == 0)	{
+								NS_LOG_DEBUG("  Node " << dist->first->GetObject<Node> ()->GetId () << " is unreachable" << std::endl);
+							}
+							else	{
+								NS_LOG_DEBUG("  ---DistancesMapLoop--, Node:" << dist->first->GetObject<Node>()->
+										GetId()<< "   face:" << *(std::get<0>(dist->second))<<"  with distance:" <<std::get<1>(dist->second));
+
+								//下面的语句使得为每个producer的节点的每个应用添加路由fibs，为0就不循环，一个节点有多个Apps时循环（这里循环执行有点冗余，因为步骤一样，只是prefix不同，但是为了代码清爽，就这样了）
+								BOOST_FOREACH (const auto& prefix, dist->first->GetLocalPrefixes ())
+								{
+									if(curPrefix==prefix->toUri())	{
+										Ptr<GlobalRouter> curNode =dist->first ;
+										Ptr<GlobalRouter> preNode;
+										NS_LOG_DEBUG("ZhangYu 2014-1-7 producer Node: " << curNode->GetObject<Node>()->GetId() );
+
+										while (curNode!=source)
+										{
+											preNode=predecessors[curNode];
+											NS_LOG_DEBUG("    ---current backtracking Node: " << curNode->GetObject<Node>()->GetId() );
+											//ZhangYu 2016-12 ZYWeightCombine的返回值是，假设路径为0-1-4，对于节点4，返回的face是1-4的，返回的距离是
+											NS_LOG_DEBUG("    ---prefix: " << *prefix << "  preNode: " << preNode->GetObject<Node>()->GetId()
+														 << "  reachable via face: " << *std::get<0>(distances[curNode])
+														 << " LocalUri： " << std::get<0>(distances[curNode])->getLocalUri()
+														 << " RemoteUri" << std::get<0>(distances[curNode])->getRemoteUri()
+														 << "  with distance: " << std::get<1>(distances[curNode])-std::get<1>(distances[preNode])
+														 << "  with delay " << std::get<2>(distances[curNode]) );
+											//ZhangYu 2017-9-21 判断条件修改为 max()-1，原来是max()，导致死循环，因为总认为max-1符合条件
+											if(std::get<1>(distances[curNode])-std::get<1>(distances[preNode]) < std::numeric_limits<uint16_t>::max()-1)
+											{
+												FibHelper::AddRoute(preNode->GetObject<Node>(), *prefix, std::get<0>(distances[curNode]),
+																	std::get<1>(distances[curNode])-std::get<1>(distances[preNode]));
+												//distances是Map类型，dist->first得到的是key，dist->second得到的是Value，而直接使用distances[curNode]得到的也是Value
+												//前面执行完了回溯路径，添加fib，后面的是把这条路径上的Link设置为不可用
+												std::get<0>(distances[curNode])->setMetric(std::numeric_limits<uint16_t>::max() - 1);
+											}
+											else
+												NS_LOG_DEBUG("ZhangYu 2014-3-22 didnot add fib, because greater than uint16::max-1");
+
+											curNode=preNode;
+										}
+									}	//if (curPrefix
+									//std::cout << "ZhangYu 2014-3-15  predecessors: " << preNode->GetId() << "   source: " << source->GetId() << std::endl;
+								}//BOOST_FOREACH
+							}
+						}
+					}//for (boost
+
+				}//for(unint32_t pathIndex
+
+				//恢复originalMetric，所以这个算法不是 None-Overlap，是每算完一对节点的路径后，恢复再算其他的。
+				BackupRestoreOriginalMetrics("Restore");
+			}
+		}
+	}
+	NS_LOG_DEBUG("ZhangYu 2014-1-6 -end of CalculateNoCommLinkMultiPathRoutes");
+}
+
+
+//tobedelete std::vector <std::vector<uint16_t> >  originalMetric;  	//注意这里的> >之间要有空格，否则error: ‘>>’ should be ‘> >’ within a nested template argument list
+std::unordered_map<std::uint32_t,std::unordered_map<nfd::FaceId, uint16_t> > originalMetrics;
+void  GlobalRoutingHelper::BackupRestoreOriginalMetrics(const std::string action)
+{
+	BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<boost::NdnGlobalRouterGraph > ));
+	BOOST_CONCEPT_ASSERT((boost::IncidenceGraphConcept<boost::NdnGlobalRouterGraph>));
+	boost::NdnGlobalRouterGraph graph;
+
+	for (NodeList::Iterator node = NodeList::Begin(); node != NodeList::End(); node++) {
+		Ptr<GlobalRouter> source = (*node)->GetObject<GlobalRouter>();
+		if (source == 0) {
+			NS_LOG_DEBUG("Node " << (*node)->GetId() << " does not export GlobalRouter interface");
+			continue;
+		}
+		std::uint32_t nodeNo=(*node)->GetId();
+
+		Ptr<L3Protocol> l3 = source->GetObject<L3Protocol>();
+		NS_ASSERT(l3 != 0);
+
+		// remember interface statuses
+		std::list<nfd::FaceId> faceIds;
+
+		//NS_LOG_DEBUG("ZhangYu 2016-12-4 Node: " << (*node)->GetId() << "  Node Name: " << Names::FindName(*node));
+		if (action=="Backup&Initial")	{
+			for (Face& face : l3->getForwarder()->getFaceTable()) {
+				//NS_LOG_DEBUG("ZhangYu face Id:" << face.getId() << "    face:" << face <<"   localUri: " << face.getLocalUri() << "   remoteUri: "  << face.getRemoteUri());
+				originalMetrics[nodeNo][face.getId() ] = face.getMetric();
+				face.setMetric(std::numeric_limits<uint16_t>::max() - 1);
+				// value std::numeric_limits<uint16_t>::max () MUST NOT be used (reserved)
+
+			}
+		}
+
+		else if (action=="Backup")	{
+			for (Face& face : l3->getForwarder()->getFaceTable()) {
+				//NS_LOG_DEBUG("ZhangYu face Id:" << face.getId() << "    face:" << face <<"   localUri: " << face.getLocalUri() << "   remoteUri: "  << face.getRemoteUri());
+				faceIds.push_back(face.getId());
+				originalMetrics[nodeNo][face.getId()] = face.getMetric();
+			}
+		}
+		else if (action=="Restore")
+		{
+			// recover original interface statuses
+			for (auto& i : originalMetrics[nodeNo]) {
+				l3->getForwarder()->getFaceTable().get(i.first)->setMetric(i.second);
+			}
+		}
+		else
+			NS_LOG_DEBUG("ZhangYu  input a wrong action string for function BackupRestoreOriginalMetrics");
+	}
+
+}
+
+// 2017-8-19 abandon scenarioHelper
+void GlobalRoutingHelper::addRouteHop(const std::string edgeStart,const std::string prefix,const std::string edgeEnd, std::int32_t metric)
+{
+	/*
+	Py_Initialize();
+	if(!Py_IsInitialized())
+	{
+		std::cout << "can't Initialize python" << std::endl;
+	}
+	std::string path="~/OneDrive/SCIP_STP/scipLearn1";
+	std::string chdir_cmd=std::string("sys.path.append(\""+path+"\")");
+	const char* cstr_cmd=chdir_cmd.c_str();
+	PyRun_SimpleString("import sys");
+	//PyRun_SimpleString(cstr_cmd);
+	PyObject *pName=PyString_FromString("learning");
+	PyObject *pModule=PyImport_Import(pName);
+	if(!pModule)
+	{
+		std::cout << "can't find learning.py " << std::endl;
+	}
+	*/
+    FibHelper::AddRoute(edgeStart, prefix, edgeEnd,metric);
+    //FibHelper::AddRoute(Names::Find<Node> ("Node1"), "/Node0", Names::Find<Node> ("Node4"),1);
+    //FibHelper::AddRoute(Names::Find<Node> ("Node1"), "/Node0", Names::Find<Node> ("Node0"),1);
+    //FibHelper::AddRoute(Names::Find<Node> ("Node0"), "/Node0", Names::Find<Node> ("Node1"),1);
+}
+// 2018-1-30 add probability for node
+void GlobalRoutingHelper::addRouteHop(const std::string edgeStart,const std::string prefix,const std::string edgeEnd, std::int32_t metric,
+		std::double_t probability)
+{
+	// ZhangYu 2018-2-1 因为浮点数的编码比较复杂，会导致处理速度慢。估计是由于这个原因在TLV格式的数据包中，只有几种不同长度的整数
+	// 为了表示端口的占用概率，或者实现带宽的分配，需要浮点数，这里采用了简单的做法，放大后取整
+    FibHelper::AddRoute(edgeStart, prefix, edgeEnd, metric, std::round(probability*1000000));
 }
 
 } // namespace ndn

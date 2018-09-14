@@ -174,6 +174,77 @@ FibHelper::AddRoute(const std::string& nodeName, const Name& prefix,
   AddRoute(node, prefix, otherNode, metric);
 }
 
+/* ***********************************
+ * ZhangYu 2018-1-31 添加了端口概率，为了方便，将所有调用的函数都排在后面
+ * 2018-2-1 在tlv格式中，因为浮点数编码复杂，所有只处理整数类型，因为将probability在数据源头将其变为整数，使用时复原
+ */
+void
+FibHelper::AddRoute(const std::string& nodeName, const Name& prefix,
+                    const std::string& otherNodeName, int32_t metric, int32_t probability)
+{
+  Ptr<Node> node = Names::Find<Node>(nodeName);
+  NS_ASSERT_MSG(node != 0, "Node [" << nodeName << "] does not exist");
+
+  Ptr<Node> otherNode = Names::Find<Node>(otherNodeName);
+  NS_ASSERT_MSG(otherNode != 0, "Node [" << otherNodeName << "] does not exist");
+
+  AddRoute(node, prefix, otherNode, metric, probability);
+}
+
+void
+FibHelper::AddRoute(Ptr<Node> node, const Name& prefix, Ptr<Node> otherNode, int32_t metric, int32_t probability)
+{
+  for (uint32_t deviceId = 0; deviceId < node->GetNDevices(); deviceId++) {
+    Ptr<PointToPointNetDevice> netDevice =
+      DynamicCast<PointToPointNetDevice>(node->GetDevice(deviceId));
+    if (netDevice == 0)
+      continue;
+
+    Ptr<Channel> channel = netDevice->GetChannel();
+    if (channel == 0)
+      continue;
+
+    if (channel->GetDevice(0)->GetNode() == otherNode
+        || channel->GetDevice(1)->GetNode() == otherNode) {
+      Ptr<L3Protocol> ndn = node->GetObject<L3Protocol>();
+      NS_ASSERT_MSG(ndn != 0, "Ndn stack should be installed on the node");
+
+      shared_ptr<Face> face = ndn->getFaceByNetDevice(netDevice);
+      NS_ASSERT_MSG(face != 0, "There is no face associated with the p2p link");
+
+      AddRoute(node, prefix, face, metric, probability);
+
+      return;
+    }
+  }
+}
+
+void
+FibHelper::AddRoute(Ptr<Node> node, const Name& prefix, shared_ptr<Face> face, int32_t metric, int32_t probability)
+{
+  NS_LOG_LOGIC("[" << node->GetId() << "]$ route add " << prefix << " via " << face->getLocalUri()
+                   << " metric " << metric);
+
+  // Get L3Protocol object
+  Ptr<L3Protocol> L3protocol = node->GetObject<L3Protocol>();
+  // Get the forwarder instance
+  shared_ptr<nfd::Forwarder> m_forwarder = L3protocol->getForwarder();
+
+  ControlParameters parameters;
+  parameters.setName(prefix);
+  parameters.setFaceId(face->getId());
+  parameters.setCost(metric);
+  parameters.setProbability(probability);
+  AddNextHop(parameters, node);
+  //ZhangYu 2018-2-1
+  //std::cout <<"2018-2-1 FibHelper::AddRoute -- probability:" << probability << std::endl;
+  //std::cout << parameters << std::endl;
+
+}
+
+
+// ************************************
+
 void
 FibHelper::RemoveRoute(Ptr<Node> node, const Name& prefix, shared_ptr<Face> face)
 {

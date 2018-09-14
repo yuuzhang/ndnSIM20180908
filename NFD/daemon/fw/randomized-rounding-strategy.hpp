@@ -23,25 +23,24 @@
  * NFD, e.g., in COPYING.md file.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef NDNSIM_EXAMPLES_NDN_LOAD_BALANCER_RANDOM_LOAD_BALANCER_STRATEGY_HPP
-#define NDNSIM_EXAMPLES_NDN_LOAD_BALANCER_RANDOM_LOAD_BALANCER_STRATEGY_HPP
+#ifndef NDNSIM_EXAMPLES_NDN_RANDOMIZED_ROUNDING_STRATEGY_HPP
+#define NDNSIM_EXAMPLES_NDN_RANDOMIZED_ROUNDING_STRATEGY_HPP
 
-//ZhangYu 2018-4-6因为不能index所以添加
-#include "ns3/ndnSIM/model/ndn-common.hpp"
-
+#include <boost/random.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include "face/face.hpp"
-#include "fw/strategy.hpp"
-#include "fw/algorithm.hpp"
+#include "strategy.hpp"
+#include "algorithm.hpp"
 
 namespace nfd {
 namespace fw {
 
-class RandomLoadBalancerStrategy : public Strategy {
+class RandomizedRoundingStrategy : public Strategy {
 public:
-  RandomLoadBalancerStrategy(Forwarder& forwarder, const Name& name = getStrategyName());
+  explicit
+  RandomizedRoundingStrategy(Forwarder& forwarder, const Name& name = getStrategyName());
 
-  virtual ~RandomLoadBalancerStrategy() override;
+  virtual ~RandomizedRoundingStrategy() override;
 
   virtual void
   afterReceiveInterest(const Face& inFace, const Interest& interest,
@@ -57,4 +56,4 @@ protected:
 } // namespace fw
 } // namespace nfd
 
-#endif // NDNSIM_EXAMPLES_NDN_LOAD_BALANCER_RANDOM_LOAD_BALANCER_STRATEGY_HPP
+#endif // NDNSIM_EXAMPLES_NDN_RANDOMIZED_ROUNDING_STRATEGY_HPP

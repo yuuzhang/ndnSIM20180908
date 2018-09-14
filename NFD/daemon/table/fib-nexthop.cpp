@@ -31,6 +31,8 @@ namespace fib {
 NextHop::NextHop(Face& face)
   : m_face(&face)
   , m_cost(0)
+  //ZhangYu 2018-1-30 默认的端口占用概率是1.0，2018-2-2改为最大值
+  , m_probability(std::numeric_limits<uint64_t>::max())
 {
 }
 

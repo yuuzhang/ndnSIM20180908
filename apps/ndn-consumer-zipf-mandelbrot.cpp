@@ -56,6 +56,7 @@ ConsumerZipfMandelbrot::GetTypeId(void)
 
   return tid;
 }
+// ZhangYu 2017-4-27，alpha=0.7 should be refer to the paper "web caching and zipf-like Distributions Evidence and Implications"
 
 ConsumerZipfMandelbrot::ConsumerZipfMandelbrot()
   : m_N(100) // needed here to make sure when SetQ/SetS are called, there is a valid value of N

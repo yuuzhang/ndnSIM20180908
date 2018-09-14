@@ -38,6 +38,7 @@ enum {
   Origin              = 111,
   Cost                = 106,
   Capacity            = 131,
+  Probability         = 113, //ZhangYu 2018-1-31
   Count               = 132,
   Flags               = 108,
   Mask                = 112,

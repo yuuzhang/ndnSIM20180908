@@ -56,9 +56,12 @@ Consumer::GetTypeId(void)
 
       .AddAttribute("Prefix", "Name of the Interest", StringValue("/"),
                     MakeNameAccessor(&Consumer::m_interestName), MakeNameChecker())
+	  //ZhangYu 2018-4-1 默认是2s
+					//为了去掉重传，修改为1ms
       .AddAttribute("LifeTime", "LifeTime for interest packet", StringValue("2s"),
+      //.AddAttribute("LifeTime", "LifeTime for interest packet", StringValue("0.001ms"),
                     MakeTimeAccessor(&Consumer::m_interestLifeTime), MakeTimeChecker())
-
+	  //ZhangYu 2018-4-1 默认是50ms
       .AddAttribute("RetxTimer",
                     "Timeout defining how frequent retransmission timeouts should be checked",
                     StringValue("50ms"),
@@ -196,9 +199,12 @@ Consumer::SendPacket()
   // NS_LOG_INFO ("Requesting Interest: \n" << *interest);
   NS_LOG_INFO("> Interest for " << seq);
 
+  // The reason for "before" event is that in certain cases (when it is possible to satisfy from the lcoal cache)
+  //, the send call will immediately return data, if use "after" potentially producing unexpected results
   WillSendOutInterest(seq);
 
   m_transmittedInterests(interest, this, m_face);
+  NS_LOG_DEBUG("ZhangYu 2018-1-25 m_face->GetLocalUri:" << m_face->getLocalUri() << " getRemoteUri:" << m_face->getRemoteUri());
   m_appLink->onReceiveInterest(*interest);
 
   ScheduleNextPacket();

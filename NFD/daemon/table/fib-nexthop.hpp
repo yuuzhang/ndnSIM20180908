@@ -59,9 +59,22 @@ public:
     m_cost = cost;
   }
 
+  // ZhangYu 2018-1-30
+  uint64_t
+  getProbability() const
+  {
+	  return m_probability;
+  }
+  void
+  setProbability(double probability)
+  {
+	  m_probability=probability;
+  }
 private:
   Face* m_face;
   uint64_t m_cost;
+  // ZhangYu 2018-1-30 add face occupied probability, in case of randomized rounding
+  uint64_t m_probability;
 };
 
 } // namespace fib

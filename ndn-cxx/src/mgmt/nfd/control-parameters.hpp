@@ -40,6 +40,7 @@ enum ControlParameterField {
   CONTROL_PARAMETER_LOCAL_URI,
   CONTROL_PARAMETER_ORIGIN,
   CONTROL_PARAMETER_COST,
+  CONTROL_PARAMETER_PROBABILITY,   // ZhangYu 2018-1-31
   CONTROL_PARAMETER_CAPACITY,
   CONTROL_PARAMETER_COUNT,
   CONTROL_PARAMETER_FLAGS,
@@ -59,6 +60,7 @@ const std::string CONTROL_PARAMETER_FIELD[CONTROL_PARAMETER_UBOUND] = {
   "LocalUri",
   "Origin",
   "Cost",
+  "Probability",  // ZhangYu 2018-1-31
   "Capacity",
   "Count",
   "Flags",
@@ -284,6 +286,40 @@ public: // getters & setters
     m_hasFields[CONTROL_PARAMETER_COST] = false;
     return *this;
   }
+
+  //********************* ZhangYu 2018-1-31  add take face by probability
+  bool
+  hasProbability() const
+  {
+    return m_hasFields[CONTROL_PARAMETER_PROBABILITY];
+  }
+
+  uint64_t
+  getProbability() const
+  {
+    BOOST_ASSERT(this->hasProbability());
+    return m_probability;
+  }
+
+  ControlParameters&
+  setProbability(uint64_t probability)
+  {
+    m_wire.reset();
+    m_probability = probability;
+    m_hasFields[CONTROL_PARAMETER_PROBABILITY] = true;
+    return *this;
+  }
+
+  ControlParameters&
+  unsetProbability()
+  {
+    m_wire.reset();
+    m_hasFields[CONTROL_PARAMETER_PROBABILITY] = false;
+    return *this;
+  }
+
+
+  //***************************************
 
   bool
   hasCapacity() const
@@ -606,6 +642,7 @@ private: // fields
   std::string         m_localUri;
   RouteOrigin         m_origin;
   uint64_t            m_cost;
+  uint64_t			  m_probability; // ZhangYu 2018-1-31
   uint64_t            m_capacity;
   uint64_t            m_count;
   uint64_t            m_flags;

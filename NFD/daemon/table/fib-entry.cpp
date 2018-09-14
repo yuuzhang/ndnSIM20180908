@@ -62,6 +62,21 @@ Entry::addNextHop(Face& face, uint64_t cost)
   this->sortNextHops();
 }
 
+//ZhangYu 2018-1-30
+void
+Entry::addNextHop(Face& face, uint64_t cost, uint64_t probability)
+{
+  auto it = this->findNextHop(face);
+  if (it == m_nextHops.end()) {
+    m_nextHops.emplace_back(face);
+    it = std::prev(m_nextHops.end());
+  }
+
+  it->setCost(cost);
+  it->setProbability(probability);
+  this->sortNextHops();
+}
+
 void
 Entry::removeNextHop(const Face& face)
 {

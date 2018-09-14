@@ -31,6 +31,9 @@
 #include "ns3/ndnSIM/NFD/daemon/fw/forwarder.hpp"
 #include "ns3/ndnSIM/NFD/daemon/table/strategy-choice.hpp"
 
+// ZhangYu 2018-2-2
+//#include "../src/ndnSIM/examples/ndn-zhangyu-multipath/randomized-rounding-strategy.hpp"
+//#include "ns3/ndnSIM/NFD/daemon/fw/randomized-rounding-strategy.hpp"
 namespace ndn {
 namespace nfd {
 class ControlParameters;

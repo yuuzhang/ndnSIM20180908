@@ -100,6 +100,48 @@ public:
   AddRoute(const std::string& nodeName, const Name& prefix, const std::string& otherNodeName,
            int32_t metric);
 
+  /*************************************所有需要调用的函数都放在后面
+   * ZhangYu 2018-1-31 Add forwarding entry with face probability
+   *
+   * \param nodeName Node name (refer to ns3::Names)
+   * \param prefix Routing prefix
+   * \param otherNode The other node name, to which interests (will be
+   *                  used to infer face id (refer to ns3::Names)
+   * \param metric Routing metric
+   * \param probability take face by probability
+   */
+  static void
+  AddRoute(const std::string& nodeName, const Name& prefix, const std::string& otherNodeName,
+           int32_t metric, int32_t probability);
+
+  /**
+   * @brief Add forwarding entry to FIB (work only with point-to-point links)
+   *
+   * \param node Node
+   * \param prefix Routing prefix
+   * \param otherNode The other node, to which interests (will be used to infer face id
+   * \param metric Routing metric
+   * \param probability take face by probability
+   */
+  static void
+  AddRoute(Ptr<Node> node, const Name& prefix, Ptr<Node> otherNode, int32_t metric, int32_t probability);
+
+  /**
+   * \brief Add forwarding entry to FIB
+   *
+   * \param node   Node
+   * \param prefix Routing prefix
+   * \param face   Face
+   * \param metric Routing metric
+   */
+  static void
+  AddRoute(Ptr<Node> node, const Name& prefix, shared_ptr<Face> face, int32_t metric, int32_t probability);
+
+
+  //************************************************************
+
+
+
   /**
    * \brief remove forwarding entry in FIB
    *
