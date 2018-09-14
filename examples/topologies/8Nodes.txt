@@ -1,0 +1,27 @@
+router
+Node0	NA	48	62	0	
+Node1	NA	48	62	0	
+Node2	NA	48	62	0	
+Node3	NA	48	62	0	
+Node4	NA	48	62	0	
+Node5	NA	48	62	0	
+Node6	NA	48	62	0	
+Node7	NA	48	62	0	
+
+link
+Node0	Node1	10.0kbps	30	20ms	
+Node0	Node2	10.0kbps	30	20ms	
+Node0	Node3	10.0kbps	30	20ms	
+Node0	Node4	10.0kbps	30	20ms	
+Node0	Node5	10.0kbps	30	20ms	
+Node1	Node2	10.0kbps	30	20ms	
+Node1	Node5	10.0kbps	30	20ms	
+Node2	Node3	10.0kbps	30	20ms	
+Node2	Node5	10.0kbps	30	20ms	
+Node3	Node4	10.0kbps	30	20ms	
+Node3	Node5	10.0kbps	30	20ms	
+Node4	Node5	10.0kbps	30	20ms	
+Node6	Node0	10.0kbps	30	20ms	
+Node6	Node2	10.0kbps	30	20ms	
+Node7	Node0	10.0kbps	30	20ms	
+Node7	Node4	10.0kbps	30	20ms	

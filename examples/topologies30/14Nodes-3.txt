@@ -1,0 +1,65 @@
+# ZhangYu 16-Mar-2018 
+
+router
+
+# node	comment	yPos	xPos	systemID
+Node0	NA	810	631	0	
+Node1	NA	426	812	1	
+Node2	NA	915	982	2	
+Node3	NA	517	14	3	
+Node4	NA	0	695	4	
+Node5	NA	620	779	5	
+Node6	NA	645	880	6	
+Node7	NA	988	915	7	
+Node8	NA	554	41	8	
+Node9	NA	2	209	9	
+Node10	NA	315	773	10	
+Node11	NA	89	580	11	
+Node12	NA	832	376	12	
+Node13	NA	854	28	13	
+
+link
+
+#srcNode	dstNode	bandwidth	metric	delay	queue	
+Node3	Node0	30.0kbps	30	20ms	
+Node3	Node1	30.0kbps	30	20ms	
+Node3	Node2	30.0kbps	30	20ms	
+Node4	Node1	30.0kbps	30	20ms	
+Node4	Node2	30.0kbps	30	20ms	
+Node4	Node3	30.0kbps	30	20ms	
+Node5	Node2	30.0kbps	30	20ms	
+Node5	Node1	30.0kbps	30	20ms	
+Node5	Node4	30.0kbps	30	20ms	
+Node6	Node0	30.0kbps	30	20ms	
+Node6	Node2	30.0kbps	30	20ms	
+Node6	Node3	30.0kbps	30	20ms	
+Node7	Node3	30.0kbps	30	20ms	
+Node7	Node2	30.0kbps	30	20ms	
+Node7	Node0	30.0kbps	30	20ms	
+Node8	Node3	30.0kbps	30	20ms	
+Node8	Node6	30.0kbps	30	20ms	
+Node8	Node0	30.0kbps	30	20ms	
+Node9	Node8	30.0kbps	30	20ms	
+Node9	Node3	30.0kbps	30	20ms	
+Node9	Node0	30.0kbps	30	20ms	
+Node10	Node4	30.0kbps	30	20ms	
+Node10	Node5	30.0kbps	30	20ms	
+Node10	Node1	30.0kbps	30	20ms	
+Node11	Node10	30.0kbps	30	20ms	
+Node11	Node4	30.0kbps	30	20ms	
+Node11	Node9	30.0kbps	30	20ms	
+Node12	Node0	30.0kbps	30	20ms	
+Node12	Node9	30.0kbps	30	20ms	
+Node12	Node10	30.0kbps	30	20ms	
+Node13	Node3	30.0kbps	30	20ms	
+Node13	Node8	30.0kbps	30	20ms	
+Node13	Node12	30.0kbps	30	20ms	
+Node0	Node5	30.0kbps	30	20ms	
+Node0	Node2	30.0kbps	30	20ms	
+Node0	Node1	30.0kbps	30	20ms	
+Node1	Node6	30.0kbps	30	20ms	
+Node1	Node7	30.0kbps	30	20ms	
+Node1	Node2	30.0kbps	30	20ms	
+Node2	Node10	30.0kbps	30	20ms	
+Node2	Node8	30.0kbps	30	20ms	
+Node2	Node9	30.0kbps	30	20ms	

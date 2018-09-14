@@ -1,0 +1,76 @@
+# ZhangYu 16-Mar-2018 
+
+router
+
+# node	comment	yPos	xPos	systemID
+Node0	NA	153	887	0	
+Node1	NA	3	106	1	
+Node2	NA	984	891	2	
+Node3	NA	164	8	3	
+Node4	NA	5	501	4	
+Node5	NA	640	777	5	
+Node6	NA	818	486	6	
+Node7	NA	293	631	7	
+Node8	NA	641	605	8	
+Node9	NA	766	88	9	
+Node10	NA	233	25	10	
+Node11	NA	259	811	11	
+Node12	NA	50	334	12	
+Node13	NA	665	855	13	
+
+link
+
+#srcNode	dstNode	bandwidth	metric	delay	queue	
+Node4	Node0	30.0kbps	30	20ms	
+Node4	Node3	30.0kbps	30	20ms	
+Node4	Node1	30.0kbps	30	20ms	
+Node4	Node2	30.0kbps	30	20ms	
+Node5	Node2	30.0kbps	30	20ms	
+Node5	Node4	30.0kbps	30	20ms	
+Node5	Node3	30.0kbps	30	20ms	
+Node5	Node0	30.0kbps	30	20ms	
+Node6	Node1	30.0kbps	30	20ms	
+Node6	Node5	30.0kbps	30	20ms	
+Node6	Node2	30.0kbps	30	20ms	
+Node6	Node0	30.0kbps	30	20ms	
+Node7	Node0	30.0kbps	30	20ms	
+Node7	Node4	30.0kbps	30	20ms	
+Node7	Node6	30.0kbps	30	20ms	
+Node7	Node2	30.0kbps	30	20ms	
+Node8	Node6	30.0kbps	30	20ms	
+Node8	Node4	30.0kbps	30	20ms	
+Node8	Node3	30.0kbps	30	20ms	
+Node8	Node5	30.0kbps	30	20ms	
+Node9	Node8	30.0kbps	30	20ms	
+Node9	Node4	30.0kbps	30	20ms	
+Node9	Node2	30.0kbps	30	20ms	
+Node9	Node3	30.0kbps	30	20ms	
+Node10	Node1	30.0kbps	30	20ms	
+Node10	Node3	30.0kbps	30	20ms	
+Node10	Node9	30.0kbps	30	20ms	
+Node10	Node8	30.0kbps	30	20ms	
+Node11	Node7	30.0kbps	30	20ms	
+Node11	Node8	30.0kbps	30	20ms	
+Node11	Node4	30.0kbps	30	20ms	
+Node11	Node0	30.0kbps	30	20ms	
+Node12	Node7	30.0kbps	30	20ms	
+Node12	Node11	30.0kbps	30	20ms	
+Node12	Node4	30.0kbps	30	20ms	
+Node12	Node1	30.0kbps	30	20ms	
+Node13	Node2	30.0kbps	30	20ms	
+Node13	Node8	30.0kbps	30	20ms	
+Node13	Node6	30.0kbps	30	20ms	
+Node13	Node5	30.0kbps	30	20ms	
+Node0	Node3	30.0kbps	30	20ms	
+Node0	Node8	30.0kbps	30	20ms	
+Node0	Node1	30.0kbps	30	20ms	
+Node0	Node2	30.0kbps	30	20ms	
+Node1	Node7	30.0kbps	30	20ms	
+Node1	Node3	30.0kbps	30	20ms	
+Node1	Node8	30.0kbps	30	20ms	
+Node1	Node9	30.0kbps	30	20ms	
+Node2	Node8	30.0kbps	30	20ms	
+Node2	Node1	30.0kbps	30	20ms	
+Node2	Node3	30.0kbps	30	20ms	
+Node3	Node7	30.0kbps	30	20ms	
+Node3	Node6	30.0kbps	30	20ms	

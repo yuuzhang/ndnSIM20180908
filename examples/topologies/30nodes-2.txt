@@ -1,0 +1,99 @@
+# ZhangYu 21-Dec-2014 
+
+router
+
+# node	comment	yPos	xPos	systemID
+Node0	NA	86	62	0	
+Node1	NA	76	7	1	
+Node2	NA	65	41	2	
+Node3	NA	93	74	3	
+Node4	NA	25	62	4	
+Node5	NA	22	99	5	
+Node6	NA	72	31	6	
+Node7	NA	39	24	7	
+Node8	NA	99	25	8	
+Node9	NA	34	37	9	
+Node10	NA	42	27	10	
+Node11	NA	38	73	11	
+Node12	NA	28	98	12	
+Node13	NA	28	78	13	
+Node14	NA	3	53	14	
+Node15	NA	0	22	15	
+Node16	NA	99	50	16	
+Node17	NA	79	0	17	
+Node18	NA	35	10	18	
+Node19	NA	48	45	19	
+Node20	NA	29	83	20	
+Node21	NA	40	83	21	
+Node22	NA	91	31	22	
+Node23	NA	20	96	23	
+Node24	NA	31	88	24	
+Node25	NA	17	78	25	
+Node26	NA	3	60	26	
+Node27	NA	54	20	27	
+Node28	NA	49	78	28	
+Node29	NA	43	33	29	
+
+link
+
+#srcNode	dstNode	bandwidth	metric	delay	queue	
+Node2	Node0	100.0kbps	30	20ms	
+Node2	Node1	100.0kbps	30	20ms	
+Node3	Node0	100.0kbps	30	20ms	
+Node3	Node2	100.0kbps	30	20ms	
+Node4	Node0	100.0kbps	30	20ms	
+Node4	Node2	100.0kbps	30	20ms	
+Node5	Node4	100.0kbps	30	20ms	
+Node5	Node1	100.0kbps	30	20ms	
+Node6	Node0	100.0kbps	30	20ms	
+Node6	Node2	100.0kbps	30	20ms	
+Node7	Node6	100.0kbps	30	20ms	
+Node7	Node0	100.0kbps	30	20ms	
+Node8	Node0	100.0kbps	30	20ms	
+Node8	Node4	100.0kbps	30	20ms	
+Node9	Node2	100.0kbps	30	20ms	
+Node9	Node7	100.0kbps	30	20ms	
+Node10	Node7	100.0kbps	30	20ms	
+Node10	Node6	100.0kbps	30	20ms	
+Node11	Node4	100.0kbps	30	20ms	
+Node11	Node3	100.0kbps	30	20ms	
+Node12	Node11	100.0kbps	30	20ms	
+Node12	Node5	100.0kbps	30	20ms	
+Node13	Node11	100.0kbps	30	20ms	
+Node13	Node4	100.0kbps	30	20ms	
+Node14	Node9	100.0kbps	30	20ms	
+Node14	Node13	100.0kbps	30	20ms	
+Node15	Node4	100.0kbps	30	20ms	
+Node15	Node14	100.0kbps	30	20ms	
+Node17	Node1	100.0kbps	30	20ms	
+Node17	Node7	100.0kbps	30	20ms	
+Node16	Node9	100.0kbps	30	20ms	
+Node16	Node8	100.0kbps	30	20ms	
+Node19	Node10	100.0kbps	30	20ms	
+Node19	Node6	100.0kbps	30	20ms	
+Node18	Node2	100.0kbps	30	20ms	
+Node18	Node4	100.0kbps	30	20ms	
+Node21	Node12	100.0kbps	30	20ms	
+Node21	Node13	100.0kbps	30	20ms	
+Node20	Node7	100.0kbps	30	20ms	
+Node20	Node2	100.0kbps	30	20ms	
+Node23	Node19	100.0kbps	30	20ms	
+Node23	Node13	100.0kbps	30	20ms	
+Node22	Node19	100.0kbps	30	20ms	
+Node22	Node21	100.0kbps	30	20ms	
+Node25	Node4	100.0kbps	30	20ms	
+Node25	Node11	100.0kbps	30	20ms	
+Node24	Node12	100.0kbps	30	20ms	
+Node24	Node20	100.0kbps	30	20ms	
+Node27	Node10	100.0kbps	30	20ms	
+Node27	Node7	100.0kbps	30	20ms	
+Node26	Node20	100.0kbps	30	20ms	
+Node26	Node27	100.0kbps	30	20ms	
+Node29	Node18	100.0kbps	30	20ms	
+Node29	Node10	100.0kbps	30	20ms	
+Node28	Node19	100.0kbps	30	20ms	
+Node28	Node24	100.0kbps	30	20ms	
+Node0	Node16	100.0kbps	30	20ms	
+Node0	Node1	100.0kbps	30	20ms	
+Node1	Node10	100.0kbps	30	20ms	
+Node1	Node7	100.0kbps	30	20ms	

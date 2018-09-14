@@ -1,0 +1,81 @@
+# ZhangYu 16-Mar-2018 
+
+router
+
+# node	comment	yPos	xPos	systemID
+Node0	NA	258	102	0	
+Node1	NA	392	468	1	
+Node2	NA	225	838	2	
+Node3	NA	2	978	3	
+Node4	NA	73	210	4	
+Node5	NA	83	466	5	
+Node6	NA	337	843	6	
+Node7	NA	750	562	7	
+Node8	NA	201	181	8	
+Node9	NA	214	903	9	
+Node10	NA	364	778	10	
+Node11	NA	288	43	11	
+Node12	NA	815	522	12	
+Node13	NA	153	670	13	
+Node14	NA	23	48	14	
+Node15	NA	733	782	15	
+Node16	NA	731	231	16	
+Node17	NA	810	941	17	
+Node18	NA	687	188	18	
+Node19	NA	819	487	19	
+Node20	NA	387	403	20	
+Node21	NA	150	552	21	
+Node22	NA	126	672	22	
+Node23	NA	625	85	23	
+
+link
+
+#srcNode	dstNode	bandwidth	metric	delay	queue	
+Node2	Node1	30.0kbps	30	20ms	
+Node2	Node0	30.0kbps	30	20ms	
+Node3	Node2	30.0kbps	30	20ms	
+Node3	Node1	30.0kbps	30	20ms	
+Node4	Node3	30.0kbps	30	20ms	
+Node4	Node0	30.0kbps	30	20ms	
+Node5	Node1	30.0kbps	30	20ms	
+Node5	Node4	30.0kbps	30	20ms	
+Node6	Node2	30.0kbps	30	20ms	
+Node6	Node1	30.0kbps	30	20ms	
+Node7	Node2	30.0kbps	30	20ms	
+Node7	Node1	30.0kbps	30	20ms	
+Node8	Node1	30.0kbps	30	20ms	
+Node8	Node2	30.0kbps	30	20ms	
+Node9	Node2	30.0kbps	30	20ms	
+Node9	Node6	30.0kbps	30	20ms	
+Node10	Node1	30.0kbps	30	20ms	
+Node10	Node0	30.0kbps	30	20ms	
+Node11	Node9	30.0kbps	30	20ms	
+Node11	Node8	30.0kbps	30	20ms	
+Node12	Node8	30.0kbps	30	20ms	
+Node12	Node5	30.0kbps	30	20ms	
+Node13	Node2	30.0kbps	30	20ms	
+Node13	Node9	30.0kbps	30	20ms	
+Node14	Node8	30.0kbps	30	20ms	
+Node14	Node11	30.0kbps	30	20ms	
+Node15	Node1	30.0kbps	30	20ms	
+Node15	Node2	30.0kbps	30	20ms	
+Node16	Node1	30.0kbps	30	20ms	
+Node16	Node12	30.0kbps	30	20ms	
+Node17	Node10	30.0kbps	30	20ms	
+Node17	Node12	30.0kbps	30	20ms	
+Node18	Node12	30.0kbps	30	20ms	
+Node18	Node7	30.0kbps	30	20ms	
+Node19	Node16	30.0kbps	30	20ms	
+Node19	Node1	30.0kbps	30	20ms	
+Node20	Node12	30.0kbps	30	20ms	
+Node20	Node10	30.0kbps	30	20ms	
+Node21	Node19	30.0kbps	30	20ms	
+Node21	Node18	30.0kbps	30	20ms	
+Node22	Node13	30.0kbps	30	20ms	
+Node22	Node6	30.0kbps	30	20ms	
+Node23	Node1	30.0kbps	30	20ms	
+Node23	Node11	30.0kbps	30	20ms	
+Node0	Node8	30.0kbps	30	20ms	
+Node0	Node20	30.0kbps	30	20ms	
+Node1	Node17	30.0kbps	30	20ms	
+Node1	Node11	30.0kbps	30	20ms	

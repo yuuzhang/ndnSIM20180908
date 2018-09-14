@@ -1,0 +1,79 @@
+# ZhangYu 16-Mar-2018 
+
+router
+
+# node	comment	yPos	xPos	systemID
+Node0	NA	519	963	0	
+Node1	NA	702	561	1	
+Node2	NA	568	668	2	
+Node3	NA	427	622	3	
+Node4	NA	449	62	4	
+Node5	NA	222	668	5	
+Node6	NA	205	311	6	
+Node7	NA	731	895	7	
+Node8	NA	775	707	8	
+Node9	NA	700	93	9	
+Node10	NA	171	284	10	
+Node11	NA	383	541	11	
+Node12	NA	362	324	12	
+Node13	NA	94	185	13	
+Node14	NA	377	789	14	
+Node15	NA	919	88	15	
+Node16	NA	413	814	16	
+Node17	NA	910	266	17	
+Node18	NA	131	865	18	
+Node19	NA	883	121	19	
+Node20	NA	911	76	20	
+Node21	NA	507	625	21	
+Node22	NA	583	573	22	
+Node23	NA	558	327	23	
+Node24	NA	998	305	24	
+Node25	NA	19	8	25	
+Node26	NA	897	12	26	
+Node27	NA	255	508	27	
+Node28	NA	695	486	28	
+Node29	NA	593	872	29	
+Node30	NA	179	206	30	
+Node31	NA	493	430	31	
+Node32	NA	613	755	32	
+Node33	NA	914	865	33	
+Node34	NA	436	175	34	
+
+link
+
+#srcNode	dstNode	bandwidth	metric	delay	queue	
+Node1	Node0	100.0kbps	30	20ms	
+Node2	Node0	100.0kbps	30	20ms	
+Node3	Node2	100.0kbps	30	20ms	
+Node4	Node1	100.0kbps	30	20ms	
+Node5	Node3	100.0kbps	30	20ms	
+Node6	Node2	100.0kbps	30	20ms	
+Node7	Node2	100.0kbps	30	20ms	
+Node8	Node5	100.0kbps	30	20ms	
+Node9	Node8	100.0kbps	30	20ms	
+Node10	Node6	100.0kbps	30	20ms	
+Node11	Node8	100.0kbps	30	20ms	
+Node12	Node1	100.0kbps	30	20ms	
+Node13	Node6	100.0kbps	30	20ms	
+Node14	Node0	100.0kbps	30	20ms	
+Node15	Node4	100.0kbps	30	20ms	
+Node16	Node14	100.0kbps	30	20ms	
+Node17	Node9	100.0kbps	30	20ms	
+Node18	Node5	100.0kbps	30	20ms	
+Node19	Node17	100.0kbps	30	20ms	
+Node20	Node2	100.0kbps	30	20ms	
+Node21	Node20	100.0kbps	30	20ms	
+Node22	Node11	100.0kbps	30	20ms	
+Node23	Node22	100.0kbps	30	20ms	
+Node24	Node9	100.0kbps	30	20ms	
+Node25	Node23	100.0kbps	30	20ms	
+Node26	Node21	100.0kbps	30	20ms	
+Node27	Node6	100.0kbps	30	20ms	
+Node28	Node12	100.0kbps	30	20ms	
+Node29	Node24	100.0kbps	30	20ms	
+Node30	Node13	100.0kbps	30	20ms	
+Node31	Node11	100.0kbps	30	20ms	
+Node32	Node2	100.0kbps	30	20ms	
+Node33	Node21	100.0kbps	30	20ms	
+Node34	Node32	100.0kbps	30	20ms	
+Node0	Node26	100.0kbps	30	20ms	
