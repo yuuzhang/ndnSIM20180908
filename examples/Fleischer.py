@@ -7,7 +7,7 @@ import re
 import numpy as np
 import mpmath as mp
 from mpmath import mpf
-import sys
+import sys, time 
 from collections import OrderedDict
 
 """
@@ -58,7 +58,7 @@ def readTopology(filename,cap=None):
                 [int(re.findall("\d+", str(alineArray[3]))[0]),int(re.findall("\d+", str(alineArray[2]))[0])])
             #pos['1']=np.array([4,5])
             
-    
+
     if __name__=="__main__":
         import matplotlib.pyplot as plt
         G=nx.DiGraph()
@@ -78,10 +78,10 @@ def readTopology(filename,cap=None):
         #nx.draw_networkx_edge_labels(G, pos,edge_labels=edge_labels)
         
         plt.axis('off')  # 是否打开坐标系on/off
-        #plt.savefig("lyy_graph.eps", format='eps')  # save as eps
+        plt.savefig("topology_graph.eps", format='eps')  # save as eps
         #plt.ion()
         #plt.pause(5)
-        #plt.close()
+        plt.close()
     
     return edge,node
 
@@ -90,16 +90,15 @@ def customedSort(nodeName):
 
 if __name__ == "__main__":
         
-    filename="topo-for-CompareMultiPath.txt"
-    #filename="100Nodes-5.txt"
-    e,n=readTopology("/topologies/"+filename)
+    #filename="topo-for-CompareMultiPath.txt"
+    filename="18Nodes-2.txt"
+    e,n=readTopology("/topologies30/"+filename)
 
-    manualAssign=False
     consumerList=[]
     producerList=[]
     if(manualAssign):
-        consumerList=['Node0']
-        producerList=['Node3']
+        consumerList=['Node0','Node1']
+        producerList=['Node2','Node3']
         #consumerList=['Node0','Node1','Node2','Node3','Node4','Node5','Node6','Node7','Node8','Node9','Node10','Node11','Node12','Node13']
         #producerList=['Node14','Node15','Node16','Node17','Node18','Node19','Node20','Node21','Node22','Node23','Node24','Node25','Node26','Node27']
         
@@ -115,26 +114,33 @@ if __name__ == "__main__":
             consumerList.append(nodesName[k])
             producerList.append(nodesName[k+K])
     d=OrderedDict()
-    for i in range(len(consumerList)):
-        d[consumerList[i],producerList[i]]=80   
-
     # 数据预处理，缩放
     for i in range(len(consumerList)):
-        d[consumerList[i],producerList[i]]=100   
-    
+        d[consumerList[i],producerList[i]]=1 
+    '''
+    开始计算，输入有 nodes, edges, dem
+    '''
     #构造图G，边的属性只设置 u(e)和 le
     G=nx.DiGraph()
     G.add_nodes_from(n)
     #G.add_edges_from(e,weight=2)
-    mp.dbs=50
-    epsilon=0.00001
+    mp.dbs=50   #浮点数的精度（小数点位数）
+    epsilon=0.002
     delta=(mpf(len(e))/(mpf(1)-mpf(epsilon)))**(mpf(-1)/mpf(epsilon))
 
     for (i,j) in e.keys():
         G.add_edge(i,j,ue=e[i,j]['cap'])
         G.add_edge(i,j,le=delta/mpf(e[i,j]['cap']))
-        #print(G[i][j]['le'])
-        #print(G.edges[i,j]['ue'])   
+    
+    startTime=time.time()
+    #根据我的论文进行的缩放
+    mincap=float(e.values()[0]['cap'])
+    for i in range(len(e.values())-1):
+        if float(e.values()[i]['cap'])<mincap:
+            mincap=float(e.values()[i]['cap'])
+    rho=mincap/max(d.values())
+    for (i,j) in d.keys():
+        d[i,j]=d[i,j]*rho
     edgeFlows={}
     # 开始计算
     Dl=mpf(0.0)
@@ -150,23 +156,29 @@ if __name__ == "__main__":
                 p=nx.shortest_path(G, source, target, 'le')
                 minu=int(G[p[0]][p[1]]['ue'])
                 # 在链路均匀的情况下，下面的循环是可以省略的,包括后面的le计算中直接使用了minu
-                '''
-                for q in range(len(p)-1):
-                    minu=min(G[p[q]][p[q+1]]['ue'],minu)
-                '''
+                #for q in range(len(p)-1):
+                #    minu=min(G[p[q]][p[q+1]]['ue'],minu)
+                
                 u=min(dj,minu)
                 dj=dj-u
+
                 for q in range(len(p)-1):
                     edgeFlows[p[q],p[q+1]]=edgeFlows[p[q],p[q+1]]+u
                     G[p[q]][p[q+1]]['le']=G[p[q]][p[q+1]]['le']*(mpf(1)+mpf(epsilon)*mpf(u)/mpf(minu))
                     #print 'G.edges[{0},{1}][le]={2}'.format(p[q],p[q+1],G[p[q]][p[q+1]]['le'])
-                Dl=0
                 for (i,j) in e.keys():
                     Dl=Dl+G.edges[i,j]['le']
-        if t>100:
-            print ('Timeout without a solution')
-            break            
-    lamb=(t-1)/mp.log(1/delta,(1+epsilon))
+        if t%10000==0:
+            print ('Now t={0}, Dl={1}'.format(t,Dl))
+            if t>10000000:
+                print ('Timeout without a solution')
+                break            
+    lamb=rho*(t-1)/mp.log(mpf(1)/delta,(1+epsilon))
+    #lamb=rho*(t)/mp.log(mpf(1+epsilon)/delta,(1+epsilon))
     print ('lambda is : {0}'.format(lamb))
-    print delta
+    print ('耗时：{0} s'.format(time.time()-startTime))
+
+    scale=mp.log((mpf(1)+mpf(epsilon))/mpf(delta))/mp.log(mpf(1)+mpf(epsilon))
+    #print edgeFlows
+    
     

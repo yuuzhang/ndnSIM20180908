@@ -13,6 +13,7 @@ import visualizer
 import math
 
 
+# ZhangYu 2019-7-14 为了Iot的更改，添加不同缓存策略的仿真结果，在仿真结果文件中添加缓存策略
 # ZhangYu 2018-1-26 添加了traffic split, randomized rounding。因为randomized rounding是需要路由计算的结果来分配的带宽的，一种方法是按照
 # NDF Developer Guide的建议保存在PIT中，这里采用了较简单的做法，直接保存在该主程序中，然后传递给自定义的NDF Strategy中
 # ZhangYu 2017-9-6 改用Python脚本运行ndnSIM仿真
@@ -44,8 +45,8 @@ args=parser.parse_args()
 manualAssign=False
 
 # ----------------仿真拓扑----------------
-topoFileName="topo-for-CompareMultiPath.txt"
-topoFileName="5Nodes-Debug.txt"
+#topoFileName="topo-for-CompareMultiPath.txt"
+#topoFileName="5Nodes-Debug.txt"
 topoFileName="12Nodes-3-1000.txt"
 #topoFileName="100Nodes-5-1000.txt"
 topologyReader=AnnotatedTopologyReader("",0.2)
@@ -54,13 +55,16 @@ nodes=topologyReader.Read()
 
 # ----------------协议加载----------------
 ndnHelper = ndn.StackHelper()
+cachepolicy="Random"
 # cs::Lru Least recently used (LRU) (default)
 # cs::Fifo First-in-first-Out (FIFO)
 # cs::Lfu Least frequently used (LFU)
 # cs::Random Random
 # cs::Nocache Policy that completely disables caching
-#ndnHelper.SetOldContentStore("ns3::ndn::cs::Lru","MaxSize","100","","","","","","")
-ndnHelper.SetOldContentStore("ns3::ndn::cs::Nocache","","","","","","","","")
+if cachepolicy=="Nocache":
+    ndnHelper.SetOldContentStore("ns3::ndn::cs::Nocache","","","","","","","","")
+else:
+    ndnHelper.SetOldContentStore("ns3::ndn::cs::" + cachepolicy,"MaxSize","200","","","","","","")
 ndnHelper.InstallAll();
 topologyReader.ApplyOspfMetric()
 ndnGlobalRoutingHelper = ndn.GlobalRoutingHelper()
@@ -77,10 +81,11 @@ else:
     for k in range(K):
         consumerList.append(topologyReader.GetNodeName(nodes.Get(k)))
         producerList.append(topologyReader.GetNodeName(nodes.Get(k+K)))
-
-cHelper = ndn.AppHelper("ns3::ndn::ConsumerCbr")
-#cHelper= ndn.AppHelper("ns3::ndn::ConsumerZipfMandelbrot")
-#cHelper.SetAttribute("NumberOfContents", StringValue("1000")) # 10 different contents
+if cachepolicy=="Nocache":
+        cHelper = ndn.AppHelper("ns3::ndn::ConsumerCbr")
+else:
+    cHelper= ndn.AppHelper("ns3::ndn::ConsumerZipfMandelbrot")
+    cHelper.SetAttribute("NumberOfContents", StringValue("1000")) # 1000 different contents，看ContentStore缓存多少
 cHelper.SetAttribute("Frequency", StringValue(args.InterestsPerSec))
 #可以选择的有：
 #"none": no randomization
@@ -109,11 +114,13 @@ for i in range(len(producerList)):
 if args.routingName=="Flooding":
     ndnGlobalRoutingHelper.CalculateAllPossibleRoutes()
     for i in range(len(producerList)):
-        ndn.StrategyChoiceHelper.InstallAll("/"+producerList[i], "/localhost/nfd/strategy/ncc")
+        #ndn.StrategyChoiceHelper.InstallAll("/"+producerList[i], "/localhost/nfd/strategy/ncc")
+        ndn.StrategyChoiceHelper.InstallAll("/"+producerList[i], "/localhost/nfd/strategy/multicast")
 elif args.routingName=="BestRoute":
     ndnGlobalRoutingHelper.CalculateRoutes()
     for i in range(len(producerList)):
-        ndn.StrategyChoiceHelper.InstallAll("/"+producerList[i], "/localhost/nfd/strategy/best-route")
+        #ndn.StrategyChoiceHelper.InstallAll("/"+producerList[i], "/localhost/nfd/strategy/best-route")
+        ndn.StrategyChoiceHelper.InstallAll("/"+producerList[i], "/localhost/nfd/strategy/multicast")
 elif args.routingName=="k-shortest-2":
     ndnGlobalRoutingHelper.CalculateNoCommLinkMultiPathRoutes(2)
     for i in range(len(producerList)):
@@ -126,7 +133,7 @@ elif args.routingName=="k-shortest-3":
 elif args.routingName=="MultiPathPairFirst":
     ndnGlobalRoutingHelper.CalculateNoCommLinkMultiPathRoutesPairFirst();
     for i in range(len(producerList)):
-        ndn.StrategyChoiceHelper.InstallAll("/"+producerList[i], "/localhost/nfd/strategy/ncc")
+        ndn.StrategyChoiceHelper.InstallAll("/"+producerList[i], "/localhost/nfd/strategy/multicast")
 elif args.routingName=="SCIP":
     lamb,routeList=mintreeMFP.caculatemaxConcurrentMFPRoute("/topologies/"+topoFileName,consumerList,producerList)
     for i in range(len(routeList)):
@@ -249,7 +256,7 @@ Simulator.Stop(Seconds(args.simulationSpan))
 #print dir(L2RateTracer)
 
 # ----------------结果记录----------------
-filename="-"+args.routingName.lower()+"-"+str(args.InterestsPerSec)+".txt"
+filename="-"+args.routingName.lower()+"-"+cachepolicy+"-"+str(args.InterestsPerSec)+".txt"
 #filename=".txt"
 TraceSpan=args.simulationSpan/args.recordsNumber;
 if (TraceSpan<1) :

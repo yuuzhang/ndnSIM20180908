@@ -83,6 +83,7 @@ def maxConcurrentMFP(n,e,d):
         - e[i,j]['cap','cost']: edges of graph, 'cap': capacity of edge, 'cost': cost for traversing edge (i,j)
         - d[i,j]: demande from node i to j
     Returns a model, ready to be solved.
+    后来使用了maxConcurrentFlowMinCostMFP
     """
     print("\n========concurrent multi-commodity flow Problem======")
     model=Model("maxConcurrentMFP")
@@ -512,7 +513,7 @@ def caculateKshortestwithRestore(filename,consumerList,producerList,K):
         edgecapacity=int(e[i,j]['cap']) #这里认为网络容量是均匀的，所以用了偷懒的做法
         #print(G[i][j]['weight'])
         #print(G.edges[i,j]['cap'])
-    if nx.__version__=="2.1":
+    if nx.__version__=="2.1" or nx.__version__=="2.2":
         originalG=G.copy(as_view=False)
     else:
         originalG=G.copy(with_data=True)
@@ -533,7 +534,7 @@ def caculateKshortestwithRestore(filename,consumerList,producerList,K):
                     G.remove_edge(p[i], p[i+1])
             else:
                 break
-        if nx.__version__=="2.1":
+        if nx.__version__=="2.1" or nx.__version__=="2.2":
             G=originalG.copy(as_view=False)
         else:
             G=originalG.copy(with_data=True)
@@ -660,8 +661,8 @@ def customedSort(nodeName):
 
 if __name__ == "__main__":
     filename="5nodes-Debug.txt"    
-    #filename="topo-for-CompareMultiPath.txt"
-    #filename="100Nodes-5.txt"
+    filename="topo-for-CompareMultiPath.txt"
+    #filename="200Nodes-4.txt"
     e,n=readTopology("/topologies/"+filename)
     manualAssign=False
     consumerList=[]
